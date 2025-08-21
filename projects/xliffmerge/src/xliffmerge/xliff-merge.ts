@@ -50,7 +50,7 @@ export class XliffMerge {
         const options: ProgramOptions = {
             languages: []
         };
-        for (let i = 1; i < argv.length; i++) {
+        for (let i = 2; i < argv.length; i++) {
             const arg = argv[i];
             if (arg === '--version' || arg === '-version') {
                 console.log('xliffmerge ' + VERSION);

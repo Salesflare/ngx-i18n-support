@@ -1,4 +1,5 @@
-import * as Tokenizr from 'tokenizr';
+import * as TokenizrNS from 'tokenizr';
+const Tokenizr: any = (TokenizrNS as any).default || TokenizrNS;
 
 /**
  * Created by martin on 04.06.2017.
@@ -24,9 +25,9 @@ const STATE_NORMAL = 'normal';
 const STATE_IN_MESSAGE = 'in_message';
 
 export class ICUMessageTokenizer {
-    private lexer: Tokenizr;
+    private lexer: any;
 
-    private getLexer(): Tokenizr {
+    private getLexer(): any {
         const lexer = new Tokenizr();
         let plaintext = '';
         let openedCurlyBracesInTextCounter = 0;
@@ -124,7 +125,7 @@ export class ICUMessageTokenizer {
     }
 
     tokenize(normalizedMessage: string): ICUToken[] {
-        const lexer: Tokenizr = this.getLexer();
+        const lexer = this.getLexer();
         lexer.input(normalizedMessage);
         return lexer.tokens();
     }

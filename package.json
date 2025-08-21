@@ -8,7 +8,7 @@
     "test": "ng test",
     "lint": "ng lint",
     "e2e": "ng e2e",
-    "buildall": "cd projects/ngx-i18nsupport-lib && npm run build && cd ../../projects/xliffmerge && npm run build && cd ../../projects/tooling && npm run build && cd ../../projects/tiny-translator && npm run build && cd ../..",
+    "buildall": "npm install --no-audit --no-fund && cd projects/ngx-i18nsupport-lib && npm install --no-audit --no-fund && npm run build && cd ../../projects/xliffmerge && npm install --no-audit --no-fund && npm run build && cd ../../projects/tooling && npm install --no-audit --no-fund && npm run build && cd ../../projects/tiny-translator && npm install --no-audit --no-fund && npm run build && cd ../..",
     "testall": "cd projects/ngx-i18nsupport-lib && npm run test && cd ../../projects/xliffmerge && npm run test && cd ../../projects/tooling && npm run test && cd ../..",
     "coverall": "cd projects/ngx-i18nsupport-lib && npm run cover && cd ../../projects/xliffmerge && npm run cover && cd ../../projects/tooling && npm run cover && cd ../../projects/tiny-translator && npm run build && cd ../.."
   },
@@ -41,6 +41,7 @@
     "rxjs": "6.5.2",
     "tokenizr": "1.4.0",
     "tsickle": "0.35.0",
+    "xmldom": "^0.1.27",
     "zone.js": "~0.9.1"
   },
   "devDependencies": {
@@ -74,6 +75,6 @@
     "ts-node": "~7.0.0",
     "tslib": "^1.9.0",
     "tslint": "~5.16.0",
-    "typescript": "~3.4.5"
+    "typescript": "3.4.5"
   }
 }

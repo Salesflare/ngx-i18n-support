@@ -1,2 +1,11 @@
 #!/usr/bin/env node
+const path = require('path');
+const Module = require('module');
+const cwdNodeModules = path.resolve(process.cwd(), 'node_modules');
+if (!Module.globalPaths.includes(cwdNodeModules)) {
+  process.env.NODE_PATH = process.env.NODE_PATH
+    ? process.env.NODE_PATH + path.delimiter + cwdNodeModules
+    : cwdNodeModules;
+  Module._initPaths();
+}
 require('../src/xliffmerge/main.js');

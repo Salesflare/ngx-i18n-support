@@ -1,4 +1,5 @@
-import * as Tokenizr from 'tokenizr';
+import * as TokenizrNS from 'tokenizr';
+const Tokenizr: any = (TokenizrNS as any).default || TokenizrNS;
 import {isNullOrUndefined} from 'util';
 
 /**
@@ -22,7 +23,7 @@ export interface Token {
 
 export class ParsedMesageTokenizer {
 
-    private getLexer(): Tokenizr {
+    private getLexer(): any {
         const lexer = new Tokenizr();
         let plaintext = '';
         lexer.before((ctx, match, rule) => {
@@ -76,7 +77,7 @@ export class ParsedMesageTokenizer {
     }
 
     tokenize(normalizedMessage: string): Token[] {
-        const lexer: Tokenizr = this.getLexer();
+        const lexer = this.getLexer();
         lexer.reset();
         lexer.input(normalizedMessage);
         return lexer.tokens();

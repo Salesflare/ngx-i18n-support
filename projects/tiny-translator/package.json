@@ -51,7 +51,8 @@
     "core-js": "^2.4.1",
     "file-saver": "^2.0.0",
     "flag-icon-css": "^2.8.0",
-    "js-base64": "^2.5.1"
+    "js-base64": "^2.5.1",
+    "xmldom": "^0.1.27"
   },
   "devDependencies": {
     "replace": "^0.3.0"
