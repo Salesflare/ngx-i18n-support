@@ -5,7 +5,7 @@ import {CommandOutput} from '../common/command-output';
 import WritableStream = NodeJS.WritableStream;
 import {WriterToString} from '../common/writer-to-string';
 import {FileUtil} from '../common/file-util';
-import {ITranslationMessagesFile, ITransUnit} from 'ngx-i18nsupport-lib';
+import {ITranslationMessagesFile, ITransUnit} from 'ngx-i18nsupport-lib/dist';
 import {TranslationMessagesFileReader} from './translation-messages-file-reader';
 import {format} from 'util';
 import {getApiKey} from '../autotranslate/auto-translate-service.spec';

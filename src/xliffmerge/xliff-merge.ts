@@ -5,7 +5,7 @@ import {XliffMergeError} from './xliff-merge-error';
 import {FileUtil} from '../common/file-util';
 import {VERSION} from './version';
 import {format, isNullOrUndefined} from 'util';
-import {ITranslationMessagesFile, ITransUnit, FORMAT_XMB, FORMAT_XTB} from 'ngx-i18nsupport-lib';
+import {ITranslationMessagesFile, ITransUnit, FORMAT_XMB, FORMAT_XTB} from 'ngx-i18nsupport-lib/dist';
 import {ProgramOptions, IConfigFile} from './i-xliff-merge-options';
 import {NgxTranslateExtractor} from './ngx-translate-extractor';
 import {TranslationMessagesFileReader} from './translation-messages-file-reader';
@@ -138,6 +138,7 @@ export class XliffMerge {
             this.parameters = XliffMergeParameters.createFromOptions(this.options);
         }
         this.commandOutput.info('xliffmerge version %s', VERSION);
+        this.commandOutput.debug('LOCAL DEV build active: path=%s', __dirname);
         if (this.parameters.verbose()) {
             this.parameters.showAllParameters(this.commandOutput);
         }

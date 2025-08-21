@@ -329,7 +329,7 @@ export class XliffMergeParameters {
         commandOutput.debug('genDir:\t"%s"', this.genDir());
         commandOutput.debug('i18nBaseFile:\t"%s"', this.i18nBaseFile());
         commandOutput.debug('i18nFile:\t"%s"', this.i18nFile());
-        commandOutput.debug('languages:\t%s', this.languages());
+        commandOutput.debug('languages:\t%s', this.languages().join(','));
         for (let language of this.languages()) {
             commandOutput.debug('outputFile[%s]:\t%s', language, this.generatedI18nFile(language));
         }
