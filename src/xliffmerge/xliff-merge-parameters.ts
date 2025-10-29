@@ -39,6 +39,11 @@ export class XliffMergeParameters {
     private _autotranslate: boolean|string[];
     private _apikey: string;
     private _apikeyfile: string;
+    private _provider: 'google' | 'chatgpt';
+    private _model: string;
+    private _prompt: string;
+    private _openaiApiKey: string;
+    private _openaiApiKeyFile: string;
 
     public errorsFound: XliffMergeError[];
     public warningsFound: string[];
@@ -215,6 +220,21 @@ export class XliffMergeParameters {
             if (!isNullOrUndefined(profile.apikeyfile)) {
                 this._apikeyfile = profile.apikeyfile;
             }
+            if (!isNullOrUndefined(profile.provider)) {
+                this._provider = profile.provider as any;
+            }
+            if (!isNullOrUndefined(profile.model)) {
+                this._model = profile.model;
+            }
+            if (!isNullOrUndefined(profile.prompt)) {
+                this._prompt = profile.prompt;
+            }
+            if (!isNullOrUndefined(profile.openaiApiKey)) {
+                this._openaiApiKey = profile.openaiApiKey;
+            }
+            if (!isNullOrUndefined(profile.openaiApiKeyFile)) {
+                this._openaiApiKeyFile = profile.openaiApiKeyFile;
+            }
         } else {
             this.warningsFound.push('did not find "xliffmergeOptions" in profile, using defaults');
         }
@@ -262,9 +282,17 @@ export class XliffMergeParameters {
         if (!(this.i18nFormat() === 'xlf' || this.i18nFormat() === 'xlf2' || this.i18nFormat() === 'xmb')) {
             this.errorsFound.push(new XliffMergeError('i18nFormat "' + this.i18nFormat() + '" invalid, must be "xlf" or "xlf2" or "xmb"'));
         }
-        // autotranslate requires api key
-        if (this.autotranslate() && !this.apikey()) {
-            this.errorsFound.push(new XliffMergeError('autotranslate requires an API key, please set one'));
+        // autotranslate requires proper api key depending on provider
+        if (this.autotranslate()) {
+            if (this.provider() === 'google') {
+                if (!this.apikey()) {
+                    this.errorsFound.push(new XliffMergeError('autotranslate requires an API key for Google Translate, please set "apikey" or "apikeyfile"'));
+                }
+            } else if (this.provider() === 'chatgpt') {
+                if (!this.openaiApiKey()) {
+                    this.errorsFound.push(new XliffMergeError('autotranslate requires an API key for ChatGPT, please set "openaiApiKey" or "openaiApiKeyFile"'));
+                }
+            }
         }
         // autotranslated languages must be in list of all languages
         this.autotranslatedLanguages().forEach((lang) => {
@@ -347,6 +375,13 @@ export class XliffMergeParameters {
         commandOutput.debug('beautifyOutput:\t%s', this.beautifyOutput());
         commandOutput.debug('autotranslate:\t%s', this.autotranslate());
         if (this.autotranslate()) {
+            commandOutput.debug('provider:\t%s', this.provider());
+            if (this.provider() === 'chatgpt') {
+                commandOutput.debug('model:\t%s', this.model());
+                commandOutput.debug('customPrompt:\t%s', this.prompt() ? 'SET' : 'NOT SET');
+                commandOutput.debug('openaiApiKey:\t%s', this.openaiApiKey() ? '****' : 'NOT SET');
+                commandOutput.debug('openaiApiKeyFile:\t%s', this.openaiApiKeyFile());
+            }
             commandOutput.debug('autotranslated languages:\t%s', this.autotranslatedLanguages());
             commandOutput.debug('apikey:\t%s', this.apikey() ? '****' : 'NOT SET');
             commandOutput.debug('apikeyfile:\t%s', this.apikeyfile());
@@ -561,6 +596,65 @@ export class XliffMergeParameters {
             return this._apikeyfile;
         } else if (process.env.API_KEY_FILE) {
             return process.env.API_KEY_FILE;
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * Translation provider. Defaults to 'google' for backwards compatibility.
+     */
+    public provider(): 'google' | 'chatgpt' {
+        return this._provider ? this._provider : 'google';
+    }
+
+    /**
+     * Model to use for ChatGPT provider. Defaults to cheapest model.
+     */
+    public model(): string {
+        // default to cheapest model
+        return this._model ? this._model : 'gpt-4o-mini';
+    }
+
+    /**
+     * Optional custom prompt for ChatGPT provider. If not set, a sane default will be used by provider.
+     */
+    public prompt(): string {
+        return this._prompt ? this._prompt : null;
+    }
+
+    /**
+     * API key to be used for OpenAI (ChatGPT) when provider is 'chatgpt'.
+     * Resolution order: explicit field -> file (explicit or env) -> env var OPENAI_API_KEY.
+     */
+    public openaiApiKey(): string {
+        if (!isNullOrUndefined(this._openaiApiKey)) {
+            return this._openaiApiKey;
+        } else {
+            const keyFile = this.openaiApiKeyFile();
+            if (keyFile) {
+                if (fs.existsSync(keyFile)) {
+                    return FileUtil.read(keyFile, 'utf-8');
+                } else {
+                    throw new Error(format('openai api key file not found: OPENAI_API_KEY_FILE=%s', keyFile));
+                }
+            } else if (process.env.OPENAI_API_KEY) {
+                return process.env.OPENAI_API_KEY;
+            } else {
+                return null;
+            }
+        }
+    }
+
+    /**
+     * file name for API key to be used for OpenAI (ChatGPT).
+     * Explicitly set or read from env var OPENAI_API_KEY_FILE.
+     */
+    public openaiApiKeyFile(): string {
+        if (this._openaiApiKeyFile) {
+            return this._openaiApiKeyFile;
+        } else if (process.env.OPENAI_API_KEY_FILE) {
+            return process.env.OPENAI_API_KEY_FILE;
         } else {
             return null;
         }

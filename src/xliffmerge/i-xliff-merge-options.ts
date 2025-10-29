@@ -50,5 +50,12 @@ export interface IXliffMergeOptions {
         // if it is false (default) no autotranslate
     apikey?: string;    // API Key for Google Translate, required if autotranslate is enabled
     apikeyfile?: string;    // file name where API Key for Google Translate can be read from
+
+    // New provider options (default to Google when not set)
+    provider?: 'google' | 'chatgpt'; // which translation provider to use, default is 'google'
+    model?: string; // model name for ChatGPT when provider is 'chatgpt' (default 'gpt-4o-mini')
+    prompt?: string; // optional custom prompt for ChatGPT
+    openaiApiKey?: string; // API Key for OpenAI when provider is 'chatgpt'
+    openaiApiKeyFile?: string; // file path to read OpenAI API Key from when provider is 'chatgpt'
 }
 

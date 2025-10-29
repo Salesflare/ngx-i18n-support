@@ -14,6 +14,9 @@ import {map, catchError} from 'rxjs/operators';
 import {XliffMergeAutoTranslateService} from '../autotranslate/xliff-merge-auto-translate-service';
 import {AutoTranslateSummaryReport} from '../autotranslate/auto-translate-summary-report';
 import {NORMALIZATION_FORMAT_DEFAULT, STATE_FINAL, STATE_TRANSLATED} from 'ngx-i18nsupport-lib/dist';
+import {ITranslateProvider} from '../autotranslate/i-translate-provider';
+import {GoogleTranslateProvider} from '../autotranslate/google-translate-provider';
+import {OpenAIChatGPTTranslateProvider} from '../autotranslate/openai-chatgpt-translate-provider';
 
 /**
  * Created by martin on 17.02.2017.
@@ -50,7 +53,7 @@ export class XliffMerge {
                     '\n\tremoveUnusedIds allowIdChange' +
                     '\n\tsupportNgxTranslate ngxTranslateExtractionPattern' +
                     '\n\tuseSourceAsTarget targetPraefix targetSuffix' +
-                    '\n\tautotranslate apikey apikeyfile');
+                    '\n\tautotranslate provider apikey apikeyfile openaiApiKey openaiApiKeyFile model prompt');
                 console.log('\tfor details please consult the home page https://github.com/martinroob/ngx-i18nsupport');
             })
             .action((languageArray) => {
@@ -155,7 +158,8 @@ export class XliffMerge {
         }
         this.readMaster();
         if (this.parameters.autotranslate()) {
-            this.autoTranslateService = new XliffMergeAutoTranslateService(this.parameters.apikey());
+            const provider: ITranslateProvider = this.createTranslateProvider();
+            this.autoTranslateService = new XliffMergeAutoTranslateService(provider);
         }
         const executionForAllLanguages: Observable<number>[] = [];
         this.parameters.languages().forEach((lang: string) => {
@@ -163,6 +167,15 @@ export class XliffMerge {
         });
         return forkJoin(executionForAllLanguages).pipe(
             map((retcodes: number[]) => {return this.totalRetcode(retcodes)}));
+    }
+
+    private createTranslateProvider(): ITranslateProvider {
+        const providerName = this.parameters.provider();
+        if (providerName === 'chatgpt') {
+            return new OpenAIChatGPTTranslateProvider(this.parameters.openaiApiKey(), this.parameters.model(), this.parameters.prompt());
+        }
+        // default: Google
+        return new GoogleTranslateProvider(this.parameters.apikey());
     }
 
     /**
@@ -295,7 +308,7 @@ export class XliffMerge {
             TranslationMessagesFileReader.save(languageSpecificMessagesFile, this.parameters.beautifyOutput());
             this.commandOutput.info('created new file "%s" for target-language="%s"', languageXliffFilePath, lang);
             if (!isDefaultLang) {
-                this.commandOutput.warn('please translate file "%s" to target-language="%s"', languageXliffFilePath, lang);
+                this.commandOutput.warn('Please Translate File "%s" to target-language="%s"', languageXliffFilePath, lang);
             }
             return null;
         }));
@@ -429,7 +442,7 @@ export class XliffMerge {
                     TranslationMessagesFileReader.save(languageSpecificMessagesFile, this.parameters.beautifyOutput());
                     this.commandOutput.info('updated file "%s" for target-language="%s"', languageXliffFilePath, lang);
                     if (newCount > 0 && !isDefaultLang) {
-                        this.commandOutput.warn('please translate file "%s" to target-language="%s"', languageXliffFilePath, lang);
+                        this.commandOutput.warn('Please Translate File "%s" to target-language="%s"', languageXliffFilePath, lang);
                     }
                     return null;
                 }));

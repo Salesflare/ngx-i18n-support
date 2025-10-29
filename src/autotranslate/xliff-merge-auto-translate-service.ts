@@ -9,6 +9,8 @@ import {
 import {AutoTranslateService} from './auto-translate-service';
 import {AutoTranslateResult} from './auto-translate-result';
 import {AutoTranslateSummaryReport} from './auto-translate-summary-report';
+import {ITranslateProvider} from './i-translate-provider';
+import {sanitizeTranslatorOutput} from './sanitize-output';
 /**
  * Created by martin on 07.07.2017.
  * Service to autotranslate Transunits via Google Translate.
@@ -16,10 +18,17 @@ import {AutoTranslateSummaryReport} from './auto-translate-summary-report';
 
 export class XliffMergeAutoTranslateService {
 
-    private autoTranslateService: AutoTranslateService;
+    private provider: ITranslateProvider;
 
-    constructor(apikey: string) {
-        this.autoTranslateService = new AutoTranslateService(apikey);
+    constructor(providerOrApiKey: any) {
+        // Backward compatibility: if a string is passed, treat it as Google API key
+        if (typeof providerOrApiKey === 'string' || providerOrApiKey == null) {
+            this.provider = new AutoTranslateService(providerOrApiKey) as unknown as ITranslateProvider;
+            // AutoTranslateService already has the required method signature
+            // and is used directly where appropriate.
+        } else {
+            this.provider = providerOrApiKey as ITranslateProvider;
+        }
     }
 
     /**
@@ -66,10 +75,11 @@ export class XliffMergeAutoTranslateService {
         const allMessages: string[] = allTranslatable.map((tu) => {
             return tu.sourceContentNormalized().asDisplayString();
         });
-        return this.autoTranslateService.translateMultipleStrings(allMessages, from, to)
+        return this.provider.translateMultipleStrings(allMessages, from, to)
             .pipe(
                 // #94 google translate might return &#.. entity refs, that must be decoded
                 map((translations: string[]) => translations.map(encodedTranslation => entityDecoderLib.decode(encodedTranslation))),
+                map((translations: string[]) => translations.map((t, i) => sanitizeTranslatorOutput(t, allMessages[i]))),
                 map((translations: string[]) => {
                 const summary = new AutoTranslateSummaryReport(from, to);
                 summary.setIgnored(allUntranslated.length - allTranslatable.length);
@@ -113,10 +123,11 @@ export class XliffMergeAutoTranslateService {
             return of(summary);
         }
         const allMessages: string[] = categories.map((category) => category.getMessageNormalized().asDisplayString());
-        return this.autoTranslateService.translateMultipleStrings(allMessages, from, to)
+        return this.provider.translateMultipleStrings(allMessages, from, to)
             .pipe(
                 // #94 google translate might return &#.. entity refs, that must be decoded
                 map((translations: string[]) => translations.map(encodedTranslation => entityDecoderLib.decode(encodedTranslation))),
+                map((translations: string[]) => translations.map((t, i) => sanitizeTranslatorOutput(t, allMessages[i]))),
                 map((translations: string[]) => {
                     const summary = new AutoTranslateSummaryReport(from, to);
                     const icuTranslation: IICUMessageTranslation = {};
@@ -154,4 +165,6 @@ export class XliffMergeAutoTranslateService {
             return new AutoTranslateResult(true, null); // success
         }
     }
+
+    // sanitizer centralized in sanitize-output.ts
 }
